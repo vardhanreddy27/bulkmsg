@@ -56,30 +56,45 @@ export default function StudentsPage({ students: initialStudents, schoolId, teac
   const [students, setStudents] = useState(initialStudents);
   const [loadingId, setLoadingId] = useState(null);
 
-  const handleSend = async (student) => {
-    setLoadingId(student.id);
+ const handleSend = async (student) => {
+  setLoadingId(student.id);
 
-    try {
-      const res = await fetch("/api/track-click", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentId: student.id, teacherId, schoolId }),
-      });
+  const mobile = cleanMobile(student.mobile);
+  const msg = getMessage(student.father_name, student.student_name);
+  const whatsappUrl = `https://wa.me/${mobile}?text=${msg}`;
 
-      const data = await res.json();
+  // open immediately so browser/mobile doesn't block it
+  const newWindow = window.open("", "_blank");
 
-      if (data.success) {
-        setStudents((prev) => prev.filter((s) => s.id !== student.id));
+  try {
+    const res = await fetch("/api/track-click", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId: student.id, teacherId, schoolId }),
+    });
 
-        const mobile = cleanMobile(student.mobile);
-        const msg = getMessage(student.father_name, student.student_name);
+    const data = await res.json();
 
-        window.open(`https://wa.me/${mobile}?text=${msg}`, "_blank");
+    if (data.success) {
+      setStudents((prev) => prev.filter((s) => s.id !== student.id));
+
+      if (newWindow) {
+        newWindow.location.href = whatsappUrl;
+      } else {
+        window.location.href = whatsappUrl;
       }
-    } finally {
-      setLoadingId(null);
+    } else {
+      alert("Failed to save click");
+      if (newWindow) newWindow.close();
     }
-  };
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong");
+    if (newWindow) newWindow.close();
+  } finally {
+    setLoadingId(null);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
