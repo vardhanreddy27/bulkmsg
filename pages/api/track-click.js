@@ -1,37 +1,55 @@
 import { sql } from "../../lib/db";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-  const { studentId, teacherId, schoolId } = req.body;
-  if (!studentId || !teacherId || !schoolId) return res.status(400).json({ error: "Missing fields" });
-
-  // Check if already sent
-  const check = await sql(
-    `SELECT talent_hunt_status FROM students WHERE id = $1`,
-    [studentId]
-  );
-  if (!check.rows.length || check.rows[0].talent_hunt_status === "sent") {
-    return res.json({ success: true });
+  if (req.method !== "POST") {
+    return res.status(405).json({ success: false, message: "Method not allowed" });
   }
 
-  // Get student details
-  const student = await sql(
-    `SELECT id, father_name, student_name, mobile FROM students WHERE id = $1`,
-    [studentId]
-  );
-  if (!student.rows.length) return res.status(404).json({ error: "Student not found" });
+  try {
+    const { studentId, teacherId, schoolId } = req.body;
 
-  // Insert log
-  await sql(
-    `INSERT INTO message_logs (student_id, teacher_id, school_id, sent_at) VALUES ($1, $2, $3, NOW())`,
-    [studentId, teacherId, schoolId]
-  );
+    const student = await sql`
+      SELECT id, talent_hunt_status
+      FROM students
+      WHERE id = ${studentId}
+      LIMIT 1
+    `;
 
-  // Update student status
-  await sql(
-    `UPDATE students SET talent_hunt_status = 'sent' WHERE id = $1`,
-    [studentId]
-  );
+    if (student.length === 0) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
 
-  return res.json({ success: true });
+    if (student[0].talent_hunt_status !== "sent") {
+      await sql`
+        INSERT INTO message_logs (
+          student_id,
+          teacher_id,
+          school_id,
+          type,
+          status
+        )
+        VALUES (
+          ${studentId},
+          ${teacherId},
+          ${schoolId},
+          'talent_hunt',
+          'sent'
+        )
+      `;
+
+      await sql`
+        UPDATE students
+        SET talent_hunt_status = 'sent'
+        WHERE id = ${studentId}
+      `;
+    }
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("TRACK CLICK ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 }
