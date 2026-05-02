@@ -6,10 +6,10 @@ export async function getServerSideProps({ params }) {
 
   const students = await sql`
     SELECT id, father_name, student_name, mobile
-    FROM students
+    FROM raghavendra_students
     WHERE school_id = ${schoolId}
     AND teacher_id = ${teacherId}
-    AND talent_hunt_status = 'not_sent'
+    AND message_status = 'not_sent'
     ORDER BY record_no
   `;
 
@@ -31,76 +31,65 @@ function cleanMobile(mobile) {
 function getMessage(father, student) {
   return encodeURIComponent(`Dear ${father},
 
-We are excited to invite ${student} to showcase brilliance at the Quantum Talent Hunt 2026!
+Greetings from Sri Guru Raghavendra English Medium High School, Kadapa.
 
-Register here:
-https://docs.google.com/forms/d/1yz73L_hrZDd7Dt1ZWQJg2gVOOxsDEFca_OxPZyZuYSM/edit
+We are inviting ${student} to explore quality education, strong values, and affordable learning.
 
-Event Details
+For admission details, please contact us.
 
-Date: 10th May 2026
-Venue: Quantum Heights English Medium School, Prakash Nagar, Kadapa
-https://maps.app.goo.gl/whXBUK4W18Q6hzha9
-
-Eligibility: Classes 1 to 10
-Entry: FREE (Lunch provided)
-
-Exciting Rewards
-Prizes worth ₹50,000
-50% Fee Discount for toppers
-
-Scan the QR code to register or contact us for more details:
-+91 9390898250
-+91 6303507136`);
+Thank you.`);
 }
 
-export default function StudentsPage({ students: initialStudents, schoolId, teacherId }) {
+export default function RaghavendraStudentsPage({
+  students: initialStudents,
+  schoolId,
+  teacherId,
+}) {
   const [students, setStudents] = useState(initialStudents);
   const [loadingId, setLoadingId] = useState(null);
 
- const handleSend = async (student) => {
-  setLoadingId(student.id);
+  const handleSend = async (student) => {
+    setLoadingId(student.id);
 
-  const mobile = cleanMobile(student.mobile);
-  const msg = getMessage(student.father_name, student.student_name);
-  const whatsappUrl = `https://wa.me/${mobile}?text=${msg}`;
+    const mobile = cleanMobile(student.mobile);
+    const msg = getMessage(student.father_name, student.student_name);
+    const whatsappUrl = `https://wa.me/${mobile}?text=${msg}`;
 
-  // open immediately so browser/mobile doesn't block it
-  const newWindow = window.open("", "_blank");
+    const newWindow = window.open("", "_blank");
 
-  try {
-    const res = await fetch("/api/track-click", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studentId: student.id, teacherId, schoolId }),
-    });
+    try {
+      const res = await fetch("/api/raghavendra-track-click", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId: student.id, teacherId, schoolId }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.success) {
-      setStudents((prev) => prev.filter((s) => s.id !== student.id));
+      if (data.success) {
+        setStudents((prev) => prev.filter((s) => s.id !== student.id));
 
-      if (newWindow) {
-        newWindow.location.href = whatsappUrl;
+        if (newWindow) {
+          newWindow.location.href = whatsappUrl;
+        } else {
+          window.location.href = whatsappUrl;
+        }
       } else {
-        window.location.href = whatsappUrl;
+        alert("Failed to save click");
+        if (newWindow) newWindow.close();
       }
-    } else {
-      alert("Failed to save click");
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong");
       if (newWindow) newWindow.close();
+    } finally {
+      setLoadingId(null);
     }
-  } catch (error) {
-    console.error(error);
-    alert("Something went wrong");
-    if (newWindow) newWindow.close();
-  } finally {
-    setLoadingId(null);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
-      <h1 className="text-xl font-bold mb-6 text-center">Students</h1>
+      <h1 className="text-xl font-bold mb-6 text-center">Records</h1>
 
       {students.length === 0 ? (
         <div className="text-green-600 text-center text-lg font-semibold mt-10">
@@ -117,8 +106,12 @@ export default function StudentsPage({ students: initialStudents, schoolId, teac
                 {student.student_name}
               </div>
 
-              <div className="text-sm text-gray-500 mb-3">
+              <div className="text-sm text-gray-500">
                 Father: {student.father_name}
+              </div>
+
+              <div className="text-sm text-gray-500 mb-3">
+                Mobile: {student.mobile}
               </div>
 
               <button
