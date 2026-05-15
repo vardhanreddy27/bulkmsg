@@ -35,9 +35,24 @@ Greetings from Sri Guru Raghavendra English Medium High School, Kadapa.
 
 We are inviting ${student} to explore quality education, strong values, and affordable learning.
 
-For admission details, please contact 9160993010.
+🚨 Admissions Open 2026–27 🚨
 
-Thank you.`);
+SRI GURU RAGHAVENDRA ENGLISH MEDIUM HIGH SCHOOL, Kadapa is now open for admissions for the new academic year.
+
+Give your child the best start with:
+
+✅ Quality Education
+✅ Experienced Faculty
+✅ Safe & Caring Environment
+✅ English Medium Education
+✅ Strong Foundation for a Bright Future
+
+📚 Enroll Now 
+
+📞 Call Now: +91 9160993010
+
+✨ Sri Guru Raghavendra English Medium High School
+Knowledge is Power`);
 }
 
 export default function RaghavendraStudentsPage({
