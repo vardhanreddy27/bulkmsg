@@ -57,11 +57,11 @@ function cleanMobile(mobile) {
 function getMessage(father, student) {
   return encodeURIComponent(`Dear ${father},
 
-Greetings from Sri Guru Raghavendra English Medium High School, Kadapa.
+Greetings from Alfa E.M. & islamic High School, Kadapa.
 
 We are inviting ${student} to explore quality education, strong values, and affordable learning.
 
-For admission details, please contact us.
+For admission details, please contact us .
 
 Thank you.`);
 }
